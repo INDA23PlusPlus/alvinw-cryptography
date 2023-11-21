@@ -42,9 +42,12 @@ public class Client {
         byte[] iv = CryptoUtils.randomBytes(12);
         SecretKey aesKey = CryptoUtils.deriveAesKeyFromPasswordAndNonce(this.password, nonce);
 
-        byte[] cipherText = CryptoUtils.aesGcmEncrypt(aesKey, iv, plainText);
+        String fileName = file.getFileName().toString();
+        byte[] fileNameHash = CryptoUtils.sha256(fileName.getBytes());
 
-        URL uploadUrl = new URL(this.serverUrl, "/upload/" + file.getFileName());
+        byte[] cipherText = CryptoUtils.aesGcmEncrypt(aesKey, iv, plainText, fileNameHash);
+
+        URL uploadUrl = new URL(this.serverUrl, "/upload/" + fileName);
         HttpURLConnection req = (HttpURLConnection) uploadUrl.openConnection();
         req.setRequestMethod("POST");
         req.setDoOutput(true);
@@ -68,9 +71,10 @@ public class Client {
         byte[] iv = inputStream.readNBytes(12);
         byte[] cipherText = inputStream.readAllBytes();
 
+        byte[] fileNameHash = CryptoUtils.sha256(fileName.getBytes());
         SecretKey aesKey = CryptoUtils.deriveAesKeyFromPasswordAndNonce(this.password, nonce);
 
-        byte[] plainText = CryptoUtils.aesGcmDecrypt(aesKey, iv, cipherText);
+        byte[] plainText = CryptoUtils.aesGcmDecrypt(aesKey, iv, cipherText, fileNameHash);
 
         System.out.write(plainText);
     }

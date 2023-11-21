@@ -7,12 +7,16 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.KeySpec;
 
 public class CryptoUtils {
     public static final String AES_GCM_ALGO = "AES/GCM/NoPadding";
     public static final String AES_ALGO = "AES";
+    public static final String PBKDF2_ALGO = "PBKDF2WithHmacSHA256";
+    public static final String SHA_256_ALGO = "SHA-256";
 
     public static byte[] randomBytes(int length) {
         byte[] nonce = new byte[length];
@@ -21,20 +25,27 @@ public class CryptoUtils {
     }
 
     public static SecretKey deriveAesKeyFromPasswordAndNonce(String password, byte[] nonce) throws GeneralSecurityException {
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256"); // wtf is this
+        SecretKeyFactory factory = SecretKeyFactory.getInstance(PBKDF2_ALGO);
         KeySpec spec = new PBEKeySpec(password.toCharArray(), nonce, 65536, 256);
-        return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
+        return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), AES_ALGO);
     }
 
-    public static byte[] aesGcmEncrypt(SecretKey key, byte[] iv, byte[] plainText) throws GeneralSecurityException {
+    public static byte[] sha256(byte[] content) throws NoSuchAlgorithmException {
+        MessageDigest sha256 = MessageDigest.getInstance(SHA_256_ALGO);
+        return sha256.digest(content);
+    }
+
+    public static byte[] aesGcmEncrypt(SecretKey key, byte[] iv, byte[] plainText, byte[] associatedData) throws GeneralSecurityException {
         Cipher cipher = Cipher.getInstance(AES_GCM_ALGO);
         cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(128, iv));
+        cipher.updateAAD(associatedData);
         return cipher.doFinal(plainText);
     }
 
-    public static byte[] aesGcmDecrypt(SecretKey key, byte[] iv, byte[] cipherText) throws GeneralSecurityException {
+    public static byte[] aesGcmDecrypt(SecretKey key, byte[] iv, byte[] cipherText, byte[] associatedData) throws GeneralSecurityException {
         Cipher cipher = Cipher.getInstance(AES_GCM_ALGO);
         cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(128, iv));
+        cipher.updateAAD(associatedData);
         return cipher.doFinal(cipherText);
     }
 }
