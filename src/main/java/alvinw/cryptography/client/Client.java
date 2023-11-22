@@ -64,7 +64,12 @@ public class Client {
                     System.out.println("Enter the file name of the file to read:");
                     String fileName = scanner.nextLine().trim();
                     System.out.println();
-                    client.read(fileName);
+                    try {
+                        client.read(fileName);
+                    } catch (GeneralSecurityException e) {
+                        System.err.println("Failed to decrypt");
+                        System.err.println("error message: " + e);
+                    }
                     System.out.println();
                 }
                 case "verify" -> client.verify();
