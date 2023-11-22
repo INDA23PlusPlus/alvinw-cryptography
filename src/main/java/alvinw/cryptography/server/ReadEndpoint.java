@@ -1,11 +1,19 @@
 package alvinw.cryptography.server;
 
+import alvinw.cryptography.CryptoUtils;
+import alvinw.cryptography.merkle.ComplementingHash;
+import alvinw.cryptography.merkle.LeafNode;
+import alvinw.cryptography.merkle.MerkleTree;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.util.Arrays;
+import java.util.List;
 
 public class ReadEndpoint implements HttpHandler {
     private final FileStorage fileStorage;
@@ -22,10 +30,27 @@ public class ReadEndpoint implements HttpHandler {
             return;
         }
         String fileName = exchange.getRequestURI().getPath().substring("/read/".length());
-        try (InputStream stream = this.fileStorage.read(fileName)) {
-            exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, this.fileStorage.size(fileName));
-            stream.transferTo(exchange.getResponseBody());
-            exchange.getResponseBody().close();
+        byte[] fileId = this.fileStorage.getFileId(fileName);
+
+        byte[] fileContent;
+        try (InputStream stream = this.fileStorage.read(fileId)) {
+            fileContent = stream.readAllBytes();
         }
+        byte[] sha256 = CryptoUtils.sha256(fileContent);
+
+        MerkleTree merkleTree = this.fileStorage.getMerkleTree();
+        LeafNode node = (LeafNode) merkleTree.find(
+            n -> n instanceof LeafNode leafNode && Arrays.equals(leafNode.hash(), sha256)
+        );
+        List<ComplementingHash> complementingHashes = node.getComplementingHashes();
+
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        DataOutputStream dataOutput = new DataOutputStream(output);
+        ComplementingHash.write(complementingHashes, dataOutput);
+        dataOutput.write(fileContent);
+        byte[] outputBytes = output.toByteArray();
+        exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, outputBytes.length);
+        exchange.getResponseBody().write(outputBytes);
+        exchange.getResponseBody().close();
     }
 }

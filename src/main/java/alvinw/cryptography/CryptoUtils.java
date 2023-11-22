@@ -11,6 +11,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.KeySpec;
+import java.util.HexFormat;
 
 public class CryptoUtils {
     public static final String AES_GCM_ALGO = "AES/GCM/NoPadding";
@@ -30,9 +31,14 @@ public class CryptoUtils {
         return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), AES_ALGO);
     }
 
-    public static byte[] sha256(byte[] content) throws NoSuchAlgorithmException {
-        MessageDigest sha256 = MessageDigest.getInstance(SHA_256_ALGO);
-        return sha256.digest(content);
+    public static byte[] sha256(byte[] content) {
+        try {
+            MessageDigest sha256 = MessageDigest.getInstance(SHA_256_ALGO);
+            return sha256.digest(content);
+        } catch (NoSuchAlgorithmException e) {
+            // All Java implementations are forced to implement SHA-256. Should never throw.
+            throw new RuntimeException(e);
+        }
     }
 
     public static byte[] aesGcmEncrypt(SecretKey key, byte[] iv, byte[] plainText, byte[] associatedData) throws GeneralSecurityException {
@@ -47,5 +53,13 @@ public class CryptoUtils {
         cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(128, iv));
         cipher.updateAAD(associatedData);
         return cipher.doFinal(cipherText);
+    }
+
+    public static String hexString(byte[] bytes) {
+        return HexFormat.of().formatHex(bytes);
+    }
+
+    public static byte[] fromHex(String hexString) {
+        return HexFormat.of().parseHex(hexString);
     }
 }

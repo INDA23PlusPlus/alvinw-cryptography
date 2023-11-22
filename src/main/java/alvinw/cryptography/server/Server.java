@@ -29,6 +29,7 @@ public class Server {
 
         httpServer.createContext("/upload/", new UploadEndpoint(fileStorage));
         httpServer.createContext("/read/", new ReadEndpoint(fileStorage));
+        httpServer.createContext("/verify", new VerifyEndpoint(fileStorage));
 
         httpServer.start();
         System.out.println("Running on port " + PORT);
