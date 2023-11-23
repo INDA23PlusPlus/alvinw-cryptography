@@ -15,6 +15,9 @@ import java.net.HttpURLConnection;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Http handler for the endpoint that reads files.
+ */
 public class ReadEndpoint implements HttpHandler {
     private final FileStorage fileStorage;
 

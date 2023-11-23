@@ -7,6 +7,9 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
+/**
+ * Http handler for the endpoint that verifies the file tree.
+ */
 public class VerifyEndpoint implements HttpHandler {
     private final FileStorage fileStorage;
 

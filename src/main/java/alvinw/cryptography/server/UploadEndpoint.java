@@ -14,6 +14,9 @@ import java.net.HttpURLConnection;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Http handler for the endpoint that uploads files.
+ */
 public class UploadEndpoint implements HttpHandler {
     private final FileStorage fileStorage;
 

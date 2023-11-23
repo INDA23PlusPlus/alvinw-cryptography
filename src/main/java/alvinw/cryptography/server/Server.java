@@ -7,6 +7,9 @@ import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * A server capable of handling requests to upload, read, and verify a file storage.
+ */
 public class Server {
     public static final int PORT = 4146;
 

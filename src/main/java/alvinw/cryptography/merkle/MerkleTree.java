@@ -11,6 +11,9 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+/**
+ * A Merkle tree.
+ */
 public class MerkleTree {
     private final Node rootNode;
 
@@ -22,6 +25,13 @@ public class MerkleTree {
         return this.rootNode.hash();
     }
 
+    /**
+     * Find a node by recurring down the tree and testing against a predicate. The
+     * first node to match is returned.
+     *
+     * @param predicate The predicate to test on nodes.
+     * @return The found node, or null.
+     */
     public Node find(Predicate<Node> predicate) {
         Queue<Node> queue = new LinkedList<>();
         queue.add(this.rootNode);
@@ -41,14 +51,23 @@ public class MerkleTree {
         return null;
     }
 
-    public static MerkleTree fromFiles(Set<FileAndSomethingElseIdk> files) {
-        List<FileAndSomethingElseIdk> sortedFiles = files.stream()
+    /**
+     * Create a Merkle tree from a set of files.
+     * <p>
+     * The same set of files will always produce the same Merkle tree, as files are
+     * sorted by their file id.
+     *
+     * @param files The files.
+     * @return The Merkle tree.
+     */
+    public static MerkleTree fromFiles(Set<FileInfo> files) {
+        List<FileInfo> sortedFiles = files.stream()
             .sorted((o1, o2) -> compareByteArrays(o1.getFileId(), o2.getFileId()))
             .collect(Collectors.toList());
 
         // If odd amount of files copy last file
         if (sortedFiles.size() % 2 == 1) {
-            FileAndSomethingElseIdk lastFile = sortedFiles.get(sortedFiles.size() - 1);
+            FileInfo lastFile = sortedFiles.get(sortedFiles.size() - 1);
             sortedFiles.add(lastFile);
         }
         List<Node> leafNodes = sortedFiles.stream()
@@ -84,6 +103,15 @@ public class MerkleTree {
         return left.length - right.length;
     }
 
+    /**
+     * Verify a file by recreating the Merkle tree from complementing hashes and
+     * comparing it to the expected top hash.
+     *
+     * @param fileNode The file to verify.
+     * @param topHash The expected top hash.
+     * @param complementingHashes The complementing hashes to the top.
+     * @return Whether verification was successful.
+     */
     public static boolean verifyFile(LeafNode fileNode, byte[] topHash, List<ComplementingHash> complementingHashes) {
         Node current = fileNode;
 
@@ -107,6 +135,15 @@ public class MerkleTree {
         return Arrays.equals(calculatedTopHash, topHash);
     }
 
+    /**
+     * Reconstruct a Merkle from a hash and complementing hashes.
+     * <p>
+     * Reconstructs it like this: <img src="https://i.imgur.com/6c5HsdB.png>
+     *
+     * @param dataHash The starting hash.
+     * @param hashes The complementing hahes.
+     * @return The Merkle tree.
+     */
     // https://i.imgur.com/6c5HsdB.png
     public static MerkleTree reconstruct(byte[] dataHash, List<ComplementingHash> hashes) {
         Node current = new LeafNode(dataHash);

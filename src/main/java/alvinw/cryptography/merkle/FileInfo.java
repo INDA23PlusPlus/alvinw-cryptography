@@ -2,14 +2,16 @@ package alvinw.cryptography.merkle;
 
 import alvinw.cryptography.CryptoUtils;
 
-public class FileAndSomethingElseIdk {
-    private final byte[] content;
+/**
+ * Information about a file. Primarily the file's SHA-256 hash, and the
+ * file id.
+ */
+public class FileInfo {
     private final byte[] sha256;
     private final byte[] fileId;
 
-    public FileAndSomethingElseIdk(byte[] fileId, byte[] content) {
+    public FileInfo(byte[] fileId, byte[] content) {
         this.fileId = fileId;
-        this.content = content;
         this.sha256 = CryptoUtils.sha256(content);
     }
 

@@ -6,6 +6,9 @@ import org.jetbrains.annotations.Nullable;
 import java.nio.ByteBuffer;
 import java.util.stream.Collectors;
 
+/**
+ * An inner node in a Merkle tree that references two lower nodes.
+ */
 public class InnerNode implements Node {
     private InnerNode parent;
     private final Node a;

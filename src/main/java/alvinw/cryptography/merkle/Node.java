@@ -1,5 +1,8 @@
 package alvinw.cryptography.merkle;
 
+/**
+ * A node in a {@link MerkleTree}.
+ */
 public interface Node {
     /**
      * Get the SHA-256 hash of this node.

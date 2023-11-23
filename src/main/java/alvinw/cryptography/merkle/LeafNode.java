@@ -6,6 +6,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A leaf node in a Merkle tree, aka a node that has no children.
+ */
 public final class LeafNode implements Node {
     private InnerNode parent;
     private final byte[] hash;

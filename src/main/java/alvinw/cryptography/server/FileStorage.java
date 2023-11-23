@@ -1,7 +1,7 @@
 package alvinw.cryptography.server;
 
 import alvinw.cryptography.CryptoUtils;
-import alvinw.cryptography.merkle.FileAndSomethingElseIdk;
+import alvinw.cryptography.merkle.FileInfo;
 import alvinw.cryptography.merkle.MerkleTree;
 
 import java.io.IOException;
@@ -12,6 +12,9 @@ import java.nio.file.Path;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * The server's file storage.
+ */
 public class FileStorage {
     private final Path root;
 
@@ -38,6 +41,12 @@ public class FileStorage {
         return Files.newInputStream(path);
     }
 
+    /**
+     * Get the set of file ids (SHA-256 hashes).
+     *
+     * @return The set.
+     * @throws IOException If an I/O error occurs.
+     */
     public Set<byte[]> getFiles() throws IOException {
         return Files.list(this.root)
             .filter(path -> path.toString().endsWith(".bin"))
@@ -47,11 +56,17 @@ public class FileStorage {
             .collect(Collectors.toSet());
     }
 
+    /**
+     * Get the Merkle tree from all the files in the storage.
+     *
+     * @return The Merkle tree.
+     * @throws IOException If an I/O error occurs.
+     */
     public MerkleTree getMerkleTree() throws IOException {
-        Set<FileAndSomethingElseIdk> files = this.getFiles().stream()
+        Set<FileInfo> files = this.getFiles().stream()
             .map(fileId -> {
                 try (InputStream inputStream = this.read(fileId)) {
-                    return new FileAndSomethingElseIdk(fileId, inputStream.readAllBytes());
+                    return new FileInfo(fileId, inputStream.readAllBytes());
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
